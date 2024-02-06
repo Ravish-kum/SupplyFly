@@ -3,7 +3,8 @@ from django.db import models
 
 class Buyers(models.Model):
     id = models.AutoField(primary_key=True)
-    buyer_name = models.CharField(max_length=100,unique=True)
+    user_id = models.ForeignKey('authentication.User', verbose_name= "User", default=1, on_delete=models.SET_DEFAULT)
+    buyer_name = models.CharField(max_length=100,unique=False)
     contact = models.CharField(max_length=15, null= True, blank=True)
     address = models.CharField(max_length=100, null=True, blank=True)
     buyer_detail = models.CharField(max_length=500)
@@ -14,7 +15,8 @@ class Buyers(models.Model):
 
 class Suppliers(models.Model):
     id = models.AutoField(primary_key=True)
-    supplier_name = models.CharField(max_length=100, unique=True)
+    user_id = models.ForeignKey('authentication.User', verbose_name= "User", default=1, on_delete=models.SET_DEFAULT)
+    supplier_name = models.CharField(max_length=100, unique=False)
     contact = models.CharField(max_length=15, null= True, blank=True)
     address = models.CharField(max_length=100, null=True, blank=True)
     supplier_detail = models.CharField(max_length=500)

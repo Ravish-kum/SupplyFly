@@ -1,6 +1,6 @@
 from .models import *
 from rest_framework import serializers
-
+from authentication.models import User
 
 class SupplierSerializer(serializers.ModelSerializer):
     
@@ -10,7 +10,7 @@ class SupplierSerializer(serializers.ModelSerializer):
 
 
 class BuyerSerializer(serializers.ModelSerializer):
-    
+   
     class Meta:
         model = Buyers
         fields = "__all__"

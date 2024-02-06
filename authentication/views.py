@@ -12,9 +12,15 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 # Create your views here.
 
+'''         get_token_for_user (function)
+Used for formation of Refresh and Access token by JWT       '''
+
 def get_tokens_for_user(user):
+    if not user:
+        return Response("error")
     refresh = RefreshToken.for_user(user)
-    access_token_payload = {'id':user.id}
+    # extracting company_name from CompanyTable through foreign key in User table (user.company_name.company_name)
+    access_token_payload = {'id':user.id, 'company_name':user.company_name.company_name}
     access_token = refresh.access_token
     access_token['payload'] = access_token_payload
     return {
@@ -22,24 +28,37 @@ def get_tokens_for_user(user):
         'access': str(access_token),
     }
 
+
+'''         
+            get_payload_form_token (function)
+Used for fetching paload (user id , error (if any) and company name)       
+'''
 def get_payload_from_token(authorization_header):
     secret_key = settings.SECRET_KEY
 
     if authorization_header is None:
         return None, Response({'error': 'Authorization header missing',"status_code":401}, status=status.HTTP_401_UNAUTHORIZED)
-    
     access_token = authorization_header.split(' ')[1]
    
     try:
         data = jwt.decode(access_token, secret_key, algorithms=['HS256'])['payload']
-        payload = data['id']
+        payload, company_name = data['id'], data['company_name']
     except jwt.exceptions.InvalidSignatureError:
         return None, Response({'error': 'Invalid token signature',"status_code":401}, status=status.HTTP_401_UNAUTHORIZED)
     except jwt.exceptions.DecodeError:
         return None, Response({'error': 'Invalid token format',"status_code":401}, status=status.HTTP_401_UNAUTHORIZED)
+                
+    return payload, None, company_name  
 
-    return payload, None
-
+'''         
+                UserSignup (class)
+It has 1 method post
+POST  :
+    Used for formation of new user using nessary fields [ "username", "phone_number", "password", "city", "address", "company_name"] 
+    where company_name is a foreign key of CompanyTable 
+    
+    return success response if created new user or error in case of failure
+'''
 class UserSignup(APIView):
     def post(self,request):
         serializer = UserSerializer(data=request.data)
@@ -55,6 +74,14 @@ class UserSignup(APIView):
         except Exception as e:
             return Response({'error': "not valid",'message':str(e)})
 
+'''
+                UserSignin (class)
+It has 1 method post 
+POST :
+    Used for user login using JWT, it takes [phone_number, password] of the user to authenticate
+    
+    return success response with refresh_token, access or error in case of failure
+'''
 class UserSignin(APIView):
     def post(self, request):
         phone_number = request.data.get('phone_number')
@@ -73,19 +100,26 @@ class UserSignin(APIView):
                     'refresh_token': response_tokens_accepter['refresh'],
                     'access': response_tokens_accepter['access'] })
     
+'''
+            UserDetailUpdate (class)
+It has 1 method put 
+PUT :
+    Used for updating details of the user, required to be logined for updating details
+
+    return success response or error in case of failure
+'''
 class UserDetailsUpdate(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def put(self, request):
-        payload, error_response = get_payload_from_token(request.META.get('HTTP_AUTHORIZATION'))
+        payload, error_response, company_name = get_payload_from_token(request.META.get('HTTP_AUTHORIZATION'))
         if error_response:
             return error_response
-        # Extract the customer ID from the payload
-        if not payload:
-            return Response({'error': 'Customer ID not found in token payload',"status_code":401}, status=status.HTTP_401_UNAUTHORIZED)
-        
-        user_instance = User.objects.filter(id=payload, is_active=True).first()
+        if not payload or not company_name:
+            return Response({'error': 'Customer ID or Company name not found in token payload',"status_code":401}, status=status.HTTP_401_UNAUTHORIZED)
+
+        user_instance = User.objects.filter(id=payload, is_active=True, company_name__company_name = company_name).first()
         if user_instance is not None:
             updated_user = UserSerializer(user_instance, data=request.data, partial=True)
 
