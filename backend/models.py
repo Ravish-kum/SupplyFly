@@ -7,6 +7,7 @@ class Buyers(models.Model):
     contact = models.CharField(max_length=15, null= True, blank=True)
     address = models.CharField(max_length=100, null=True, blank=True)
     buyer_detail = models.CharField(max_length=500)
+    order_count = models.IntegerField(default=0)
     status = models.BooleanField(default=True)
     class Meta:
         db_table = 'Buyers'
@@ -17,6 +18,7 @@ class Suppliers(models.Model):
     contact = models.CharField(max_length=15, null= True, blank=True)
     address = models.CharField(max_length=100, null=True, blank=True)
     supplier_detail = models.CharField(max_length=500)
+    order_count = models.IntegerField(default=0)
     status=models.BooleanField(default=True)
     class Meta:
         db_table = 'Suppliers'

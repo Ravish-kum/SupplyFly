@@ -30,3 +30,4 @@ class User(AbstractUser,PermissionsMixin):
     REQUIRED_FIELDS = ['username','company_name', 'city']
     class Meta:
         db_table = 'User'
+

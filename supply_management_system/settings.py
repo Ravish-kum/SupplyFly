@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'backend',
     'rest_framework',
     'rest_framework_simplejwt',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -210,3 +211,6 @@ LOGGING = {
         },
     },
 }
+#logs
+#crons
+#export files
