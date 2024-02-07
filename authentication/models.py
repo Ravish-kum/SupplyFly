@@ -23,7 +23,7 @@ class UserManger(BaseUserManager):
 
 class User(AbstractUser,PermissionsMixin):
     phone_number = models.CharField(max_length=15, unique = True)
-    company_name = models.ForeignKey('CompanyTable',verbose_name= "Buyers",on_delete=models.CASCADE, null=True, blank=True)
+    company_name = models.ForeignKey('CompanyTable',verbose_name= "company_name",on_delete=models.CASCADE, null=True, blank=True)
     city = models.CharField(max_length=100)
     address = models.CharField(max_length=100, null=True, blank=True)
     USERNAME_FIELD = 'phone_number'

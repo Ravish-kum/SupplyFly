@@ -17,7 +17,7 @@ Used for formation of Refresh and Access token by JWT       '''
 
 def get_tokens_for_user(user):
     if not user:
-        return Response("error")
+        return Response({"error":"user instance not found"},status= status.HTTP_401_UNAUTHORIZED)
     refresh = RefreshToken.for_user(user)
     # extracting company_name from CompanyTable through foreign key in User table (user.company_name.company_name)
     access_token_payload = {'id':user.id, 'company_name':user.company_name.company_name}
@@ -27,7 +27,6 @@ def get_tokens_for_user(user):
         'refresh': str(refresh),
         'access': str(access_token),
     }
-
 
 '''         
             get_payload_form_token (function)
@@ -66,13 +65,13 @@ class UserSignup(APIView):
         phone_number_already_exist = User.objects.filter(phone_number = phone_number).exists()
 
         if phone_number_already_exist:
-            return Response({'error':'User already exists'})
+            return Response({'error':'User already exists',"status_code":409}, status=status.HTTP_409_CONFLICT)
         try:
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response({'success': 'User created successfully'})
+            return Response({'message': 'User created successfully',"status_code":201}, status=status.HTTP_201_CREATED)
         except Exception as e:
-            return Response({'error': "not valid",'message':str(e)})
+            return Response({'error': "not valid",'message':str(e),"status_code":500}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 '''
                 UserSignin (class)
@@ -92,13 +91,13 @@ class UserSignin(APIView):
             response_tokens_accepter = get_tokens_for_user(user)            
             login(request, user)
         else:
-            return Response({'error':"no user or wrong credentials"})
+            return Response({'error':"no user or wrong credentials","status_code":400}, status=status.HTTP_400_BAD_REQUEST)
     
         return Response({
                     'message':'signin success',
-                    'status_code':200,
                     'refresh_token': response_tokens_accepter['refresh'],
-                    'access': response_tokens_accepter['access'] })
+                    'access': response_tokens_accepter['access'] ,
+                    "status_code":200}, status=status.HTTP_200_OK)
     
 '''
             UserDetailUpdate (class)
@@ -125,5 +124,5 @@ class UserDetailsUpdate(APIView):
 
             if updated_user.is_valid(raise_exception=True):
                 updated_user.save()
-                return Response({'success':'update done'})
-        return Response({"error":"something went wrong"})
+                return Response({'message':'update done to user', "status_code":200}, status=status.HTTP_200_OK)
+        return Response({"error":"something went wrong","status_code":500},status=status.HTTP_500_INTERNAL_SERVER_ERROR)
